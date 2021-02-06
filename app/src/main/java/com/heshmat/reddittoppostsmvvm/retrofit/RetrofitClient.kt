@@ -10,9 +10,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    const val baseUrl = "https://www.reddit.com/"
+    private const val baseUrl = "https://www.reddit.com/"
 
-    val retrofitClient: Retrofit.Builder by lazy {
+    private val retrofitClient: Retrofit.Builder by lazy {
 
         val okhttpClient = OkHttpClient.Builder()
 
