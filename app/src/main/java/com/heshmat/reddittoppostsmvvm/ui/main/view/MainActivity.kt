@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -17,6 +16,7 @@ import com.heshmat.reddittoppostsmvvm.data.model.RedditPosts
 import com.heshmat.reddittoppostsmvvm.ui.base.ViewModelFactory
 import com.heshmat.reddittoppostsmvvm.ui.main.adapter.RedditPostAdapter
 import com.heshmat.reddittoppostsmvvm.ui.main.viewmodel.MainViewModel
+import com.heshmat.reddittoppostsmvvm.utils.ConnectionLiveData
 import com.heshmat.reddittoppostsmvvm.utils.Status
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -24,12 +24,27 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mainViewModel: MainViewModel
     private lateinit var adapter: RedditPostAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupUI()
         setupViewModel()
         setupObserver()
+        setupConnectionObserver()
+        prevBt.setOnClickListener {
+            mainViewModel.fetchPageBefore()
+        }
+        nextBt.setOnClickListener {
+            mainViewModel.fetchPageAfter()
+        }
+        //check if first page
+        mainViewModel.isFirstPage().observe(this, Observer {
+                if (it)
+                    prevBt.visibility=View.GONE
+                else
+                    prevBt.visibility=View.VISIBLE
+        })
     }
 
 
@@ -63,20 +78,21 @@ class MainActivity : AppCompatActivity() {
                 }
                 Status.LOADING -> {
                     progressBar.visibility = View.VISIBLE
-                    recyclerView.visibility = View.GONE
                 }
                 Status.ERROR -> {
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
                 }
             }
         })
     }
 
     private fun renderList(redditPost: RedditPosts) {
-        val r: RedditPosts = redditPost
-        redditPost.data?.children?.let { adapter.addData(it) }
-        adapter.notifyDataSetChanged()
+        if (redditPost.data?.children?.isNotEmpty()!!) {
+            adapter.clearData()
+            redditPost.data?.children?.let { adapter.addData(it) }
+            adapter.notifyDataSetChanged()
+            recyclerView.scrollToPosition(0)
+        }
     }
 
     private fun setupViewModel() {
@@ -84,5 +100,30 @@ class MainActivity : AppCompatActivity() {
             this,
             ViewModelFactory(ApiHelper(ApiServiceImpl()))
         ).get(MainViewModel::class.java)
+    }
+
+    fun connectionState(isConnected: Boolean) {
+        if (!isConnected) {
+            noInternetTv.visibility = View.VISIBLE
+            nextBt.isEnabled = false
+            prevBt.isEnabled = false
+
+        } else {
+            if (adapter.itemCount == 0)
+                mainViewModel.fetchRedditPosts()
+            noInternetTv.visibility = View.GONE
+            nextBt.isEnabled = true
+            prevBt.isEnabled = true
+        }
+
+
+    }
+
+    private fun setupConnectionObserver() {
+        val connectionLiveData = ConnectionLiveData(applicationContext)
+        connectionLiveData.observe(this, Observer {
+            it?.isConnected?.let { it1 -> connectionState(it1) }
+        })
+
     }
 }

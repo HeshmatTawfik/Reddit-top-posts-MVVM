@@ -25,6 +25,9 @@ class RedditPostAdapter(private val childrenArrList: ArrayList<Children>) :
     fun addData(list: List<Children>) {
         childrenArrList.addAll(list)
     }
+    fun clearData(){
+        childrenArrList.clear()
+    }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(post: Children) {
