@@ -69,11 +69,10 @@ class RedditPostAdapter(
                             p3: Boolean
                         ): Boolean {
 
-                                itemView.thumbIv.visibility = View.GONE
+                            itemView.thumbIv.visibility = View.GONE
 
 
-                            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-
+                            return false
                         }
 
                         override fun onResourceReady(
@@ -85,8 +84,8 @@ class RedditPostAdapter(
                         ): Boolean {
                             // if the image is video so parameter should be false that the video can be open in browser
                             itemView.thumbIv.setOnClickListener {
-                            listener.onImgClick(post.data?.imgURl, !post.data?.isVideo!!)}
-                            //do something when picture already loaded
+                                listener.onImgClick(post.data?.imgURl, !post.data?.isVideo!!)
+                            }
                             return false
                         }
                     })
