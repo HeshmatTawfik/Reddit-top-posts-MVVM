@@ -1,9 +1,11 @@
 package com.heshmat.reddittoppostsmvvm.ui.main.view
 
+import android.content.Intent
 import android.content.res.Configuration
-import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -20,7 +22,8 @@ import com.heshmat.reddittoppostsmvvm.utils.ConnectionLiveData
 import com.heshmat.reddittoppostsmvvm.utils.Status
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity(), RedditPostAdapter.ImageClickListener {
 
     private lateinit var mainViewModel: MainViewModel
     private lateinit var adapter: RedditPostAdapter
@@ -40,10 +43,10 @@ class MainActivity : AppCompatActivity() {
         }
         //check if first page
         mainViewModel.isFirstPage().observe(this, Observer {
-                if (it)
-                    prevBt.visibility=View.GONE
-                else
-                    prevBt.visibility=View.VISIBLE
+            if (it)
+                prevBt.visibility = View.GONE
+            else
+                prevBt.visibility = View.VISIBLE
         })
     }
 
@@ -56,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             recyclerView.layoutManager = GridLayoutManager(this, 2)
 
         }
-        adapter = RedditPostAdapter(arrayListOf())
+        adapter = RedditPostAdapter(arrayListOf(), this)
         recyclerView.addItemDecoration(
             DividerItemDecoration(
                 recyclerView.context,
@@ -102,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         ).get(MainViewModel::class.java)
     }
 
-    fun connectionState(isConnected: Boolean) {
+    private fun connectionState(isConnected: Boolean) {
         if (!isConnected) {
             noInternetTv.visibility = View.VISIBLE
             nextBt.isEnabled = false
@@ -124,6 +127,25 @@ class MainActivity : AppCompatActivity() {
         connectionLiveData.observe(this, Observer {
             it?.isConnected?.let { it1 -> connectionState(it1) }
         })
+
+    }
+
+    override fun onImgClick(imgUrl: String?, isImg: Boolean) {
+        val intent: Intent
+        if (isImg) {
+            intent = Intent(this, FullScreenViewActivity::class.java).apply {
+                putExtra("IMG_URL", imgUrl)
+            }
+        } else {
+            intent =
+                Intent(Intent.ACTION_VIEW, Uri.parse(imgUrl))
+
+        }
+        try {
+            startActivity(intent)
+
+        } catch (e: Exception) {
+        }
 
     }
 }
